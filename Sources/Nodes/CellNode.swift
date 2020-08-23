@@ -20,8 +20,7 @@ public struct CellNode {
         // This is workaround for avoid redundant `AnyHashable` wrapping.
         if type(of: id) == AnyHashable.self {
             self.id = unsafeBitCast(id, to: AnyHashable.self)
-        }
-        else {
+        } else {
             self.id = id
         }
 
@@ -73,5 +72,12 @@ extension CellNode: CustomDebugStringConvertible {
     @inlinable
     public var debugDescription: String {
         return "CellNode(id: \(id), component: \(component))"
+    }
+}
+
+extension CellNode: Equatable {
+
+    public static func == (lhs: CellNode, rhs: CellNode) -> Bool {
+        return lhs.isContentEqual(to: rhs)
     }
 }

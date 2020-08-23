@@ -1,5 +1,6 @@
 // swiftlint:disable line_length
 // swiftlint:disable function_parameter_count
+// swiftlint:disable identifier_name
 
 /// The custom parameter attribute that constructs cells from multi-statement closures.
 @_functionBuilder

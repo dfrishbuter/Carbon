@@ -6,6 +6,8 @@ public protocol Updater {
     /// A type that represents an adapter holding the data to be rendered.
     associatedtype Adapter: Carbon.Adapter
 
+    var target: AnyObject? { get }
+
     /// Prepares given target and adapter.
     ///
     /// - Parameters:

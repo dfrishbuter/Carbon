@@ -123,7 +123,7 @@ public extension ComponentWrapping {
     /// - Parameter:
     ///   - content: An instance of content going out from display area.
     @inlinable
-    func contentDidEndDisplay(_ content: Wrapped.Content) {
-        wrapped.contentDidEndDisplay(content)
+    func contentDidEndDisplaying(_ content: Wrapped.Content) {
+        wrapped.contentDidEndDisplaying(content)
     }
 }

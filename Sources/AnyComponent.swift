@@ -24,8 +24,7 @@ public struct AnyComponent: Component {
     public init<Base: Component>(_ base: Base) {
         if let anyComponent = base as? AnyComponent {
             self = anyComponent
-        }
-        else {
+        } else {
             box = ComponentBox(base)
         }
     }
@@ -126,8 +125,66 @@ public struct AnyComponent: Component {
     /// - Parameter:
     ///   - content: An instance of content going out from display area.
     @inlinable
-    public func contentDidEndDisplay(_ content: Any) {
-        box.contentDidEndDisplay(content)
+    public func contentDidEndDisplaying(_ content: Any) {
+        box.contentDidEndDisplaying(content)
+    }
+
+    /// Invoked every time when the component is about be highlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    ///
+    /// - Returns: A `Bool` value indicating whether the component should be highlighted.
+    @inlinable
+    public func shouldHighlight(at indexPath: IndexPath) -> Bool {
+        return box.shouldHighlight(at: indexPath)
+    }
+
+    /// Invoked every time when the component becomes highlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    public func didHighlight(at indexPath: IndexPath) {
+        box.didHighlight(at: indexPath)
+    }
+
+    /// Invoked every time when the component becomes unhighlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    public func didUnhighlight(at indexPath: IndexPath) {
+        box.didUnhighlight(at: indexPath)
+    }
+
+    /// Invoked every time when the component is about be selected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    ///
+    /// - Returns: A `Bool` value indicating whether the component should be selected.
+    @inlinable
+    public func shouldSelect(at indexPath: IndexPath) -> Bool {
+        return box.shouldSelect(at: indexPath)
+    }
+
+    /// Invoked every time when the component becomes selected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    public func didSelect(at indexPath: IndexPath) {
+        box.didSelect(at: indexPath)
+    }
+
+    /// Invoked every time when the component becomes deselected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    public func didDeselect(at indexPath: IndexPath) {
+        box.didDeselect(at: indexPath)
     }
 
     /// Returns a base instance casted as given type if possible.
@@ -161,7 +218,15 @@ internal protocol AnyComponentBox {
     func shouldRender(next: AnyComponentBox, in content: Any) -> Bool
 
     func contentWillDisplay(_ content: Any)
-    func contentDidEndDisplay(_ content: Any)
+    func contentDidEndDisplaying(_ content: Any)
+
+    func shouldHighlight(at indexPath: IndexPath) -> Bool
+    func didHighlight(at indexPath: IndexPath)
+    func didUnhighlight(at indexPath: IndexPath)
+
+    func shouldSelect(at indexPath: IndexPath) -> Bool
+    func didSelect(at indexPath: IndexPath)
+    func didDeselect(at indexPath: IndexPath)
 }
 
 @usableFromInline
@@ -180,7 +245,7 @@ internal struct ComponentBox<Base: Component>: AnyComponentBox {
     }
 
     @usableFromInline
-    init(_ base: Base) {
+    init(_ base: Base) { // swiftlint:disable:this omitted_parameter_name_in_init
         baseComponent = base
     }
 
@@ -191,8 +256,9 @@ internal struct ComponentBox<Base: Component>: AnyComponentBox {
 
     @inlinable
     func render(in content: Any) {
-        guard let content = content as? Base.Content else { return }
-
+        guard let content = content as? Base.Content else {
+            return
+        }
         baseComponent.render(in: content)
     }
 
@@ -203,43 +269,80 @@ internal struct ComponentBox<Base: Component>: AnyComponentBox {
 
     @inlinable
     func layout(content: Any, in container: UIView) {
-        guard let content = content as? Base.Content else { return }
-
+        guard let content = content as? Base.Content else {
+            return
+        }
         baseComponent.layout(content: content, in: container)
     }
 
     @inlinable
     func intrinsicContentSize(for content: Any) -> CGSize {
-        guard let content = content as? Base.Content else { return .zero }
+        guard let content = content as? Base.Content else {
+            return .zero
+        }
 
         return baseComponent.intrinsicContentSize(for: content)
     }
 
     @inlinable
     func shouldContentUpdate(with next: AnyComponentBox) -> Bool {
-        guard let next = next.base as? Base else { return true }
-
+        guard let next = next.base as? Base else {
+            return true
+        }
         return baseComponent.shouldContentUpdate(with: next)
     }
 
     @inlinable
     func shouldRender(next: AnyComponentBox, in content: Any) -> Bool {
-        guard let next = next.base as? Base, let content = content as? Base.Content else { return true }
-
+        guard let next = next.base as? Base, let content = content as? Base.Content else {
+            return true
+        }
         return baseComponent.shouldRender(next: next, in: content)
     }
 
     @inlinable
     func contentWillDisplay(_ content: Any) {
-        guard let content = content as? Base.Content else { return }
-
+        guard let content = content as? Base.Content else {
+            return
+        }
         baseComponent.contentWillDisplay(content)
     }
 
     @inlinable
-    func contentDidEndDisplay(_ content: Any) {
-        guard let content = content as? Base.Content else { return }
+    func contentDidEndDisplaying(_ content: Any) {
+        guard let content = content as? Base.Content else {
+            return
+        }
+        baseComponent.contentDidEndDisplaying(content)
+    }
 
-        baseComponent.contentDidEndDisplay(content)
+    @inlinable
+    func shouldHighlight(at indexPath: IndexPath) -> Bool {
+        return baseComponent.shouldHighlight(at: indexPath)
+    }
+
+    @inlinable
+    func didHighlight(at indexPath: IndexPath) {
+        baseComponent.didHighlight(at: indexPath)
+    }
+
+    @inlinable
+    func didUnhighlight(at indexPath: IndexPath) {
+        baseComponent.didUnhighlight(at: indexPath)
+    }
+
+    @inlinable
+    func shouldSelect(at indexPath: IndexPath) -> Bool {
+        return baseComponent.shouldSelect(at: indexPath)
+    }
+
+    @inlinable
+    func didSelect(at indexPath: IndexPath) {
+        baseComponent.didSelect(at: indexPath)
+    }
+
+    @inlinable
+    func didDeselect(at indexPath: IndexPath) {
+        baseComponent.didDeselect(at: indexPath)
     }
 }

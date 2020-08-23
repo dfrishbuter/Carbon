@@ -4,21 +4,20 @@ internal final class RuntimeAssociation<Value> {
     private let key = UnsafeMutablePointer<UInt8>.allocate(capacity: 1)
     private let defaultValue: () -> Value
 
+    init(default defaultValue: @escaping @autoclosure () -> Value) {
+        self.defaultValue = defaultValue
+    }
+
     deinit {
         key.deinitialize(count: 1)
         key.deallocate()
-    }
-
-    init(default defaultValue: @escaping @autoclosure () -> Value) {
-        self.defaultValue = defaultValue
     }
 
     subscript<Owner: AnyObject>(owner: Owner) -> Value {
         get {
             if let object = objc_getAssociatedObject(owner, key) as? Value {
                 return object
-            }
-            else {
+            } else {
                 let value = defaultValue()
                 self[owner] = value
                 return value

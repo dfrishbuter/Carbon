@@ -13,4 +13,6 @@ open class UICollectionComponentReusableView: UICollectionReusableView, Componen
 
         backgroundColor = .clear
     }
+
+    open func componentDidRender() {}
 }

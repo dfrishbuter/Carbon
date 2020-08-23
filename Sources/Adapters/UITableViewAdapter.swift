@@ -8,11 +8,17 @@ import UIKit
 ///             are don't work properly, so this class doesn't use generics, and also the class inherited
 ///             this class shouldn't use generics.
 open class UITableViewAdapter: NSObject, Adapter {
+    public var target: AnyObject?
+
+    public var tableView: UITableView? {
+        return target as? UITableView
+    }
+
     /// The data to be rendered in the list UI.
     public var data: [Section]
 
     /// A closure that to handle selection events of cell.
-    open var didSelect: ((SelectionContext) -> Void)?
+    open var didSelect: ((EventContext) -> Void)?
 
     /// Create an adapter with initial data.
     ///
@@ -91,7 +97,7 @@ public extension UITableViewAdapter {
     }
 
     /// Context when cell is selected.
-    struct SelectionContext {
+    struct EventContext {
         /// A table view of the selected cell.
         public var tableView: UITableView
 
@@ -134,15 +140,18 @@ extension UITableViewAdapter: UITableViewDataSource {
 extension UITableViewAdapter: UITableViewDelegate {
     /// Resister and dequeue the header in specified section.
     open func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        guard let node = headerNode(in: section) else { return nil }
-
+        guard let node = headerNode(in: section) else {
+            return nil
+        }
         let registration = headerViewRegistration(tableView: tableView, section: section, node: node)
         return dequeueComponentHeaderFooterView(tableView: tableView, section: section, node: node, registration: registration)
     }
 
     /// Resister and dequeue the footer in specified section.
     open func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
-        guard let node = footerNode(in: section) else { return nil }
+        guard let node = footerNode(in: section) else {
+            return nil
+        }
 
         let registration = footerViewRegistration(tableView: tableView, section: section, node: node)
         return dequeueComponentHeaderFooterView(tableView: tableView, section: section, node: node, registration: registration)
@@ -165,7 +174,12 @@ extension UITableViewAdapter: UITableViewDelegate {
 
     /// Returns the estimated height for header in specified section.
     open func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
-        return heightForHeader(in: tableView, section: section, defaultHeight: tableView.estimatedSectionHeaderHeight, leastHeight: .leastHeaderFooterEstimatedHeight)
+        return heightForHeader(
+            in: tableView,
+            section: section,
+            defaultHeight: tableView.estimatedSectionHeaderHeight,
+            leastHeight: .leastHeaderFooterEstimatedHeight
+        )
     }
 
     /// Returns the height for footer in specified section.
@@ -175,15 +189,22 @@ extension UITableViewAdapter: UITableViewDelegate {
 
     /// Returns the estimated height for footer in specified section.
     open func tableView(_ tableView: UITableView, estimatedHeightForFooterInSection section: Int) -> CGFloat {
-        return heightForFooter(in: tableView, section: section, defaultHeight: tableView.estimatedSectionFooterHeight, leastHeight: .leastHeaderFooterEstimatedHeight)
+        return heightForFooter(
+            in: tableView,
+            section: section,
+            defaultHeight: tableView.estimatedSectionFooterHeight,
+            leastHeight: .leastHeaderFooterEstimatedHeight
+        )
     }
 
     /// Callback the selected event of cell to the `didSelect` closure.
     open func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard let didSelect = didSelect else { return }
+        guard let didSelect = didSelect else {
+            return
+        }
 
         let node = cellNode(at: indexPath)
-        let context = SelectionContext(tableView: tableView, node: node, indexPath: indexPath)
+        let context = EventContext(tableView: tableView, node: node, indexPath: indexPath)
         didSelect(context)
 
         // In rare cases, execution such as presenting view controller may be delayed if set the `UITableViewCell.selectionStyle` to `.none`.
@@ -200,7 +221,7 @@ extension UITableViewAdapter: UITableViewDelegate {
 
     /// The event that the cell did left from the visible rect.
     open func tableView(_ tableView: UITableView, didEndDisplaying cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        (cell as? ComponentRenderable)?.contentDidEndDisplay()
+        (cell as? ComponentRenderable)?.contentDidEndDisplaying()
     }
 
     /// The event that the header will display in the visible rect.
@@ -210,7 +231,7 @@ extension UITableViewAdapter: UITableViewDelegate {
 
     /// The event that the header did left from the visible rect.
     open func tableView(_ tableView: UITableView, didEndDisplayingHeaderView view: UIView, forSection section: Int) {
-        (view as? ComponentRenderable)?.contentDidEndDisplay()
+        (view as? ComponentRenderable)?.contentDidEndDisplaying()
     }
 
     /// The event that the footer will display in the visible rect.
@@ -220,11 +241,14 @@ extension UITableViewAdapter: UITableViewDelegate {
 
     /// The event that the footer did left from the visible rect.
     open func tableView(_ tableView: UITableView, didEndDisplayingFooterView view: UIView, forSection section: Int) {
-        (view as? ComponentRenderable)?.contentDidEndDisplay()
+        (view as? ComponentRenderable)?.contentDidEndDisplaying()
     }
 }
 
 private extension UITableViewAdapter {
+
+    typealias RenderableHeaderFooterView = UITableViewHeaderFooterView & ComponentRenderable
+
     func heightForRow(in tableView: UITableView, indexPath: IndexPath, defaultHeight: CGFloat) -> CGFloat {
         let node = cellNode(at: indexPath)
         return node.component.referenceSize(in: tableView.bounds)?.height ?? defaultHeight
@@ -255,7 +279,7 @@ private extension UITableViewAdapter {
         registration: ViewRegistration
         ) -> UITableViewHeaderFooterView {
         let reuseIdentifier = node.component.reuseIdentifier
-        let componentView = tableView.dequeueReusableHeaderFooterView(withIdentifier: reuseIdentifier) as? UITableViewHeaderFooterView & ComponentRenderable
+        let componentView = tableView.dequeueReusableHeaderFooterView(withIdentifier: reuseIdentifier) as? RenderableHeaderFooterView
 
         guard let view = componentView, view.isMember(of: registration.class) else {
             tableView.register(headerFooterView: registration, forReuseIdentifier: reuseIdentifier)
@@ -271,8 +295,7 @@ private extension UITableView {
     func register(cell registration: UITableViewAdapter.CellRegistration, forReuseIdentifier reuseIdentifier: String) {
         if let nib = registration.nib {
             register(nib, forCellReuseIdentifier: reuseIdentifier)
-        }
-        else {
+        } else {
             register(registration.class, forCellReuseIdentifier: reuseIdentifier)
         }
     }
@@ -280,8 +303,7 @@ private extension UITableView {
     func register(headerFooterView registration: UITableViewAdapter.ViewRegistration, forReuseIdentifier reuseIdentifier: String) {
         if let nib = registration.nib {
             register(nib, forHeaderFooterViewReuseIdentifier: reuseIdentifier)
-        }
-        else {
+        } else {
             register(registration.class, forHeaderFooterViewReuseIdentifier: reuseIdentifier)
         }
     }
@@ -295,8 +317,7 @@ private extension CGFloat {
     static let leastHeaderFooterEstimatedHeight: CGFloat = {
         if #available(iOS 11.0, *) {
             return .leastNonzeroMagnitude
-        }
-        else {
+        } else {
             return 1.001
         }
     }()

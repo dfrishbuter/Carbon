@@ -2,6 +2,12 @@ import UIKit
 
 /// An updater for managing diffing updates to render data to the `UITableView`.
 open class UITableViewUpdater<Adapter: UITableViewAdapter>: Updater {
+    public weak var target: AnyObject?
+
+    public var tableView: UITableView? {
+        return target as? UITableView
+    }
+
     /// An animation for section deletions. Default is fade.
     open var deleteSectionsAnimation = UITableView.RowAnimation.fade
 
@@ -63,6 +69,8 @@ open class UITableViewUpdater<Adapter: UITableViewAdapter>: Updater {
     ///   - target: A target to be prepared.
     ///   - adapter: An adapter to be set to `delegate` and `dataSource`.
     open func prepare(target: UITableView, adapter: Adapter) {
+        self.target = target
+        adapter.target = target
         target.delegate = adapter
         target.dataSource = adapter
         target.reloadData()
@@ -143,19 +151,24 @@ open class UITableViewUpdater<Adapter: UITableViewAdapter>: Updater {
                     }
 
                     if !changeset.elementDeleted.isEmpty {
-                        target.deleteRows(at: changeset.elementDeleted.map { IndexPath(row: $0.element, section: $0.section) }, with: deleteRowsAnimation)
+                        let indexPaths = changeset.elementDeleted.map { IndexPath(row: $0.element, section: $0.section) }
+                        target.deleteRows(at: indexPaths, with: deleteRowsAnimation)
                     }
 
                     if !changeset.elementInserted.isEmpty {
-                        target.insertRows(at: changeset.elementInserted.map { IndexPath(row: $0.element, section: $0.section) }, with: insertRowsAnimation)
+                        let indexPaths = changeset.elementInserted.map { IndexPath(row: $0.element, section: $0.section) }
+                        target.insertRows(at: indexPaths, with: insertRowsAnimation)
                     }
 
                     if !changeset.elementUpdated.isEmpty {
-                        target.reloadRows(at: changeset.elementUpdated.map { IndexPath(row: $0.element, section: $0.section) }, with: reloadRowsAnimation)
+                        let indexPath = changeset.elementUpdated.map { IndexPath(row: $0.element, section: $0.section) }
+                        target.reloadRows(at: indexPath, with: reloadRowsAnimation)
                     }
 
                     for (sourcePath, targetPath) in changeset.elementMoved {
-                        target.moveRow(at: IndexPath(row: sourcePath.element, section: sourcePath.section), to: IndexPath(row: targetPath.element, section: targetPath.section))
+                        let sourceIndexPath = IndexPath(row: sourcePath.element, section: sourcePath.section)
+                        let targetIndexPath = IndexPath(row: targetPath.element, section: targetPath.section)
+                        target.moveRow(at: sourceIndexPath, to: targetIndexPath)
                     }
                 }
             }
@@ -163,8 +176,7 @@ open class UITableViewUpdater<Adapter: UITableViewAdapter>: Updater {
 
         if isAnimationEnabled && (isAnimationEnabledWhileScrolling || !target._isScrolling) {
             performBatchUpdates()
-        }
-        else {
+        } else {
             UIView.performWithoutAnimation(performBatchUpdates)
         }
 
@@ -224,8 +236,7 @@ private extension UITableView {
     func _performBatchUpdates(_ updates: () -> Void) {
         if #available(iOS 11.0, tvOS 11.0, *) {
             performBatchUpdates(updates)
-        }
-        else {
+        } else {
             beginUpdates()
             updates()
             endUpdates()

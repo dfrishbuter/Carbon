@@ -2,6 +2,8 @@ import Foundation
 
 /// Represents an adapter that holds data to be rendered.
 public protocol Adapter: class {
+    var target: AnyObject? { get }
+
     /// The data to be rendered.
     var data: [Section] { get set }
 }

@@ -35,6 +35,7 @@ import UIKit
 ///         }
 ///     }
 public protocol Component {
+
     /// A type that represents a content to be render on the element of list UI.
     associatedtype Content
 
@@ -120,10 +121,51 @@ public protocol Component {
     ///
     /// - Parameter:
     ///   - content: An instance of content going out from display area.
-    func contentDidEndDisplay(_ content: Content)
+    func contentDidEndDisplaying(_ content: Content)
+
+    /// Invoked every time when the component is about be highlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    ///
+    /// - Returns: A `Bool` value indicating whether the component should be highlighted.
+    func shouldHighlight(at indexPath: IndexPath) -> Bool
+
+    /// Invoked every time when the component becomes highlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    func didHighlight(at indexPath: IndexPath)
+
+    /// Invoked every time when the component becomes unhighlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    func didUnhighlight(at indexPath: IndexPath)
+
+    /// Invoked every time when the component is about be selected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    ///
+    /// - Returns: A `Bool` value indicating whether the component should be selected.
+    func shouldSelect(at indexPath: IndexPath) -> Bool
+
+    /// Invoked every time when the component becomes selected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    func didSelect(at indexPath: IndexPath)
+
+    /// Invoked every time when the component becomes deselected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    func didDeselect(at indexPath: IndexPath)
 }
 
 public extension Component {
+
     /// A string used to identify a element that is reusable. Default is the type name of `self`.
     @inlinable
     var reuseIdentifier: String {
@@ -186,10 +228,61 @@ public extension Component {
     /// - Parameter:
     ///   - content: An instance of content going out from display area.
     @inlinable
-    func contentDidEndDisplay(_ content: Content) {}
+    func contentDidEndDisplaying(_ content: Content) {}
+
+    /// Invoked every time when the component is about be highlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    ///
+    /// - Returns: A `Bool` value indicating whether the component should be highlighted.
+    @inlinable
+    func shouldHighlight(at indexPath: IndexPath) -> Bool {
+        return true
+    }
+
+    /// Invoked every time when the component becomes highlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    func didHighlight(at indexPath: IndexPath) {}
+
+    /// Invoked every time when the component becomes unhighlighted.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    func didUnhighlight(at indexPath: IndexPath) {}
+
+    /// Invoked every time when the component is about be selected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    ///
+    /// - Returns: A `Bool` value indicating whether the component should be selected.
+    @inlinable
+    func shouldSelect(at indexPath: IndexPath) -> Bool {
+        return true
+    }
+
+    /// Invoked every time when the component becomes selected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    func didSelect(at indexPath: IndexPath) {}
+
+    /// Invoked every time when the component becomes deselected.
+    ///
+    /// - Parameter:
+    ///   - indexPath: Current index path for which the event has been occurred.
+    @inlinable
+    func didDeselect(at indexPath: IndexPath) {}
 }
 
 public extension Component where Content: UIView {
+
     /// Layout the content on top of element of the list UI.
     ///
     /// - Parameters:
@@ -212,6 +305,7 @@ public extension Component where Content: UIView {
 }
 
 public extension Component where Content: UIViewController {
+
     /// Layout the content on top of element of the list UI.
     ///
     /// - Parameters:
@@ -234,6 +328,7 @@ public extension Component where Content: UIViewController {
 }
 
 private extension UIView {
+
     func addSubviewWithEdgeConstraints(_ view: UIView) {
         view.translatesAutoresizingMaskIntoConstraints = false
         addSubview(view)

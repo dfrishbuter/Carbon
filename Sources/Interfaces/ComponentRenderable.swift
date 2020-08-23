@@ -1,9 +1,14 @@
+// swiftlint:disable accessors_and_observers_on_newline
+
 import UIKit
 
 /// Represents a container that can render a component.
 public protocol ComponentRenderable: class {
     /// The container view to be render a component.
     var componentContainerView: UIView { get }
+
+    /// This method is called after the `ComponentRenderable` has rendered its content.
+    func componentDidRender()
 }
 
 private let renderedContentAssociation = RuntimeAssociation<Any?>(default: nil)
@@ -26,16 +31,18 @@ public extension ComponentRenderable {
 internal extension ComponentRenderable {
     /// Invoked every time of before a component got into visible area.
     func contentWillDisplay() {
-        guard let content = renderedContent else { return }
-
+        guard let content = renderedContent else {
+            return
+        }
         renderedComponent?.contentWillDisplay(content)
     }
 
     /// Invoked every time of after a component went out from visible area.
-    func contentDidEndDisplay() {
-        guard let content = renderedContent else { return }
-
-        renderedComponent?.contentDidEndDisplay(content)
+    func contentDidEndDisplaying() {
+        guard let content = renderedContent else {
+            return
+        }
+        renderedComponent?.contentDidEndDisplaying(content)
     }
 
     /// Render given componet to container.
@@ -50,12 +57,14 @@ internal extension ComponentRenderable {
         case (let content?, _):
             component.render(in: content)
             renderedComponent = component
+            componentDidRender()
 
         case (nil, _):
             let content = component.renderContent()
             component.layout(content: content, in: componentContainerView)
             renderedContent = content
             render(component: component)
+            componentDidRender()
         }
     }
 }

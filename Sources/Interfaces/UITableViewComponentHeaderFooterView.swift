@@ -14,4 +14,6 @@ open class UITableViewComponentHeaderFooterView: UITableViewHeaderFooterView, Co
         backgroundView = UIView()
         contentView.backgroundColor = .clear
     }
+
+    open func componentDidRender() {}
 }

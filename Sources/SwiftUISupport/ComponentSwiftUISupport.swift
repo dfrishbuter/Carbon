@@ -15,6 +15,7 @@ private struct ComponentView<C: Component>: View {
     var component: C
     var proxy = ComponentViewProxy()
 
+    // swiftlint:disable:next omitted_parameter_name_in_init
     init(_ component: C) {
         self.component = component
     }
@@ -22,7 +23,7 @@ private struct ComponentView<C: Component>: View {
     var body: some View {
         ComponentRepresenting(component: component, proxy: proxy)
             .onAppear { self.proxy.uiView?.contentWillDisplay() }
-            .onDisappear { self.proxy.uiView?.contentDidEndDisplay() }
+            .onDisappear { self.proxy.uiView?.contentDidEndDisplaying() }
     }
 }
 
@@ -55,14 +56,14 @@ private final class UIComponentView: UIView, ComponentRenderable {
     override var intrinsicContentSize: CGSize {
         if let referenceSize = renderedComponent?.referenceSize(in: bounds) {
             return referenceSize
-        }
-        else if let component = renderedComponent, let content = renderedContent {
+        } else if let component = renderedComponent, let content = renderedContent {
             return component.intrinsicContentSize(for: content)
-        }
-        else {
+        } else {
             return super.intrinsicContentSize
         }
     }
+
+    public func componentDidRender() {}
 }
 
 private final class ComponentViewProxy {

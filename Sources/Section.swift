@@ -46,8 +46,7 @@ public struct Section {
         // This is workaround for avoid redundant `AnyHashable` wrapping.
         if type(of: id) == AnyHashable.self {
             self.id = unsafeBitCast(id, to: AnyHashable.self)
-        }
-        else {
+        } else {
             self.id = id
         }
 

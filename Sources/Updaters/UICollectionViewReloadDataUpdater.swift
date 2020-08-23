@@ -2,6 +2,12 @@ import UIKit
 
 /// An updater for managing to perform reload data to render data to the `UICollectionView`.
 open class UICollectionViewReloadDataUpdater<Adapter: UICollectionViewAdapter>: Updater {
+    public weak var target: AnyObject?
+
+    public var collectionView: UICollectionView? {
+        return target as? UICollectionView
+    }
+
     /// Create a new updater.
     public init() {}
 
@@ -11,6 +17,8 @@ open class UICollectionViewReloadDataUpdater<Adapter: UICollectionViewAdapter>: 
     ///   - target: A target to be prepared.
     ///   - adapter: An adapter to be set to `delegate` and `dataSource`.
     open func prepare(target: UICollectionView, adapter: Adapter) {
+        self.target = target
+        adapter.target = target
         target.delegate = adapter
         target.dataSource = adapter
         target.reloadData()

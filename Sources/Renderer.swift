@@ -1,3 +1,5 @@
+// swiftlint:disable accessors_and_observers_on_newline
+
 import UIKit
 
 /// Renderer is a controller to render passed data to target
@@ -26,18 +28,27 @@ import UIKit
 ///         Label("Cell 3")
 ///             .identified(by: \.text)
 ///     }
-open class Renderer<Updater: Carbon.Updater> {
+open class Renderer<Updater: Carbon.Updater, Factory: Carbon.ComponentsFactory> {
     /// An instance of adapter that specified at initialized.
     public let adapter: Updater.Adapter
 
     /// An instance of updater that specified at initialized.
     public let updater: Updater
 
+    /// An instance of factory that specified at initialized.
+    /// If this property is set, renderer is able to obtain components itself.
+    /// In this case it will be enouth to use `render` method without any arguments.
+
+    public var factory: Factory?
+
     /// An instance of target that weakly referenced.
     /// It will be passed to the `prepare` method of updater at didSet.
     open weak var target: Updater.Target? {
         didSet {
-            guard let target = target else { return }
+            guard let target = target else {
+                return
+            }
+            factory?.target = target
             updater.prepare(target: target, adapter: adapter)
         }
     }
@@ -50,9 +61,10 @@ open class Renderer<Updater: Carbon.Updater> {
     }
 
     /// Create a new instance with given adapter and updater.
-    public init(adapter: Updater.Adapter, updater: Updater) {
+    public init(adapter: Updater.Adapter, updater: Updater, factory: Factory? = nil) {
         self.adapter = adapter
         self.updater = updater
+        self.factory = factory
     }
 
     /// Render given collection of sections, immediately.
@@ -110,6 +122,15 @@ open class Renderer<Updater: Carbon.Updater> {
         render {
             Section(id: UniqueIdentifier(), cells: cells)
         }
+    }
+
+    /// Render variadic number of sections created using factory, immediately.
+    open func render() {
+        guard let factory = factory else {
+            assertionFailure("Using method `render()` without arguments is allowed only if the property `factory` was set.")
+            return
+        }
+        render(factory.makeSections())
     }
 }
 

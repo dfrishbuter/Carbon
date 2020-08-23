@@ -2,6 +2,12 @@ import UIKit
 
 /// An updater for managing diffing updates to render data to the `UICollectionView`.
 open class UICollectionViewUpdater<Adapter: UICollectionViewAdapter>: Updater {
+    public weak var target: AnyObject?
+
+    public var collectionView: UICollectionView? {
+        return target as? UICollectionView
+    }
+
     /// A Bool value indicating whether that enable diffing animation. Default is true.
     open var isAnimationEnabled = true
 
@@ -32,6 +38,8 @@ open class UICollectionViewUpdater<Adapter: UICollectionViewAdapter>: Updater {
     ///   - target: A target to be prepared.
     ///   - adapter: An adapter to be set to `delegate` and `dataSource`.
     open func prepare(target: UICollectionView, adapter: Adapter) {
+        self.target = target
+        adapter.target = target
         target.delegate = adapter
         target.dataSource = adapter
         target.reloadData()
@@ -93,6 +101,7 @@ open class UICollectionViewUpdater<Adapter: UICollectionViewAdapter>: Updater {
 
         func performBatchUpdates() {
             for changeset in stagedChangeset {
+                // swiftlint:disable:next trailing_closure
                 target.performBatchUpdates({
                     adapter.data = changeset.data
 
@@ -125,7 +134,9 @@ open class UICollectionViewUpdater<Adapter: UICollectionViewAdapter>: Updater {
                     }
 
                     for (sourcePath, targetPath) in changeset.elementMoved {
-                        target.moveItem(at: IndexPath(item: sourcePath.element, section: sourcePath.section), to: IndexPath(item: targetPath.element, section: targetPath.section))
+                        let sourceIndexPath = IndexPath(item: sourcePath.element, section: sourcePath.section)
+                        let targetIndexPath = IndexPath(item: targetPath.element, section: targetPath.section)
+                        target.moveItem(at: sourceIndexPath, to: targetIndexPath)
                     }
                 })
             }
@@ -133,8 +144,7 @@ open class UICollectionViewUpdater<Adapter: UICollectionViewAdapter>: Updater {
 
         if isAnimationEnabled && (isAnimationEnabledWhileScrolling || !target._isScrolling) {
             performBatchUpdates()
-        }
-        else {
+        } else {
             UIView.performWithoutAnimation(performBatchUpdates)
         }
 
@@ -152,6 +162,7 @@ open class UICollectionViewUpdater<Adapter: UICollectionViewAdapter>: Updater {
     ///   - adapter: An adapter holding currently rendered data.
     open func renderVisibleComponents(in target: UICollectionView, adapter: Adapter) {
         UIView.performWithoutAnimation {
+            // swiftlint:disable:next trailing_closure
             target.performBatchUpdates({
                 for kind in adapter.registeredSupplementaryViewKinds(for: target) {
                     for indexPath in target.indexPathsForVisibleSupplementaryElements(ofKind: kind) {

@@ -5,13 +5,28 @@ open class UICollectionViewFlowLayoutAdapter: UICollectionViewAdapter {}
 
 extension UICollectionViewFlowLayoutAdapter: UICollectionViewDelegateFlowLayout {
     /// Returns the size for item at specified index path.
-    open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+    open func collectionView(_ collectionView: UICollectionView,
+                             layout collectionViewLayout: UICollectionViewLayout,
+                             sizeForItemAt indexPath: IndexPath) -> CGSize {
         let node = cellNode(at: indexPath)
-        return node.component.referenceSize(in: collectionView.bounds) ?? collectionViewLayout.flowLayout?.itemSize ?? .zero
+        var bounds = collectionView.bounds
+        if let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout {
+            switch flowLayout.scrollDirection {
+            case .horizontal:
+                bounds.size.height -= collectionView.contentInset.top + collectionView.contentInset.bottom
+            case .vertical:
+                bounds.size.width -= collectionView.contentInset.left + collectionView.contentInset.right
+            @unknown default:
+                break
+            }
+        }
+        return node.component.referenceSize(in: bounds) ?? collectionViewLayout.flowLayout?.itemSize ?? .zero
     }
 
     /// Returns the size for header in specified section.
-    open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
+    open func collectionView(_ collectionView: UICollectionView,
+                             layout collectionViewLayout: UICollectionViewLayout,
+                             referenceSizeForHeaderInSection section: Int) -> CGSize {
         guard let node = headerNode(in: section) else {
             return .zero
         }
@@ -20,7 +35,9 @@ extension UICollectionViewFlowLayoutAdapter: UICollectionViewDelegateFlowLayout 
     }
 
     /// Returns the size for footer in specified section.
-    open func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForFooterInSection section: Int) -> CGSize {
+    open func collectionView(_ collectionView: UICollectionView,
+                             layout collectionViewLayout: UICollectionViewLayout,
+                             referenceSizeForFooterInSection section: Int) -> CGSize {
         guard let node = footerNode(in: section) else {
             return .zero
         }

@@ -1,6 +1,9 @@
+// swiftlint:disable identifier_name
+
 import UIKit
 
 internal extension UIScrollView {
+
     var _isScrolling: Bool {
         return isTracking || isDragging || isDecelerating
     }
@@ -25,8 +28,7 @@ private extension UIScrollView {
     var availableContentInset: UIEdgeInsets {
         if #available(iOS 11.0, tvOS 11.0, *) {
             return adjustedContentInset
-        }
-        else {
+        } else {
             return contentInset
         }
     }
